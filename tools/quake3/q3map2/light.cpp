@@ -202,6 +202,84 @@ static void CreateSkyLights( vec3_t color, float value, int iterations, float fi
 	return;
 }
 
+/* Emerald
+  TemperatureToRGB()
+  Converts a Kelvin temperature (blackbody radiation) to RGB
+  Based on Tanner Helland's algorithm: https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
+*/
+
+void TemperatureToRGB(vec3_t &color, float temperature) {
+
+	temperature /= 100;
+
+	/* Calculate red */
+
+	float red = 0;
+	if (temperature <= 66) {
+		red = 255;
+	}
+	else {
+		red = temperature - 60;
+		red = 329.698727446 * pow(red, -0.1332047592);
+		if (red < 0) {
+			red = 0;
+		}
+		if (red > 255) {
+			red = 255;
+		}
+	}
+
+	/* Calculate green */
+
+	float green = 0;
+	if (temperature <= 66) {
+		green = temperature;
+		green = 99.4708025861 * log(green + 1) - 161.1195681661;
+		if (green < 0) {
+			green = 0;
+		}
+		if (green > 255) {
+			green = 255;
+		}
+	}
+	else {
+		green = temperature - 60;
+		green = 288.1221695283 * pow(green, -0.0755148492);
+		if (green < 0) {
+			green = 0;
+		}
+		if (green > 255) {
+			green = 255;
+		}
+	}
+
+	/* Calculate blue */
+
+	float blue = 0;
+	if (temperature >= 66) {
+		blue = 255;
+	}
+	else {
+		if (temperature <= 19) {
+			blue = 0;
+		}
+		else {
+			blue = temperature - 10;
+			blue = 138.5177312231 * log(blue + 1) - 305.0447927307;
+			if (blue < 0) {
+				blue = 0;
+			}
+			if (blue > 255) {
+				blue = 255;
+			}
+		}
+	}
+
+	color[0] = red;
+	color[1] = green;
+	color[2] = blue;
+
+}
 
 
 /*
@@ -376,6 +454,15 @@ void CreateEntityLights( void ){
 		}
 		else{
 			VectorSet( light->color, 1.f, 1.f, 1.f );
+		}
+
+		/* emerald: set temperature */
+
+		if (e->read_keyvalue(light->temperature, "temperature")) {
+			TemperatureToRGB(light->color, light->temperature);
+			if (!(light->flags & LightFlags::Unnormalized)) {
+				ColorNormalize(light->color, light->color);
+			}
 		}
 
 

@@ -1310,6 +1310,8 @@ struct light_t
 
 	float falloffTolerance;                 /* ydnar: minimum attenuation threshold */
 	float filterRadius;                 /* ydnar: lightmap filter radius in world units, 0 == default */
+
+	int	temperature;					/* emerald */
 };
 
 
